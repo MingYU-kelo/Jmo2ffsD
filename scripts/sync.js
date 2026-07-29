@@ -21,7 +21,12 @@ function fetchJSON(apiPath) {
       port: 443,
       path: parsed.pathname + parsed.search,
       method: 'GET',
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://cshvh.cn/',
+      },
       timeout: 30000,
     };
     const req = https.request(options, (res) => {
@@ -29,7 +34,12 @@ function fetchJSON(apiPath) {
       res.on('data', (chunk) => body.push(chunk));
       res.on('end', () => {
         try {
-          const data = JSON.parse(Buffer.concat(body).toString());
+          const text = Buffer.concat(body).toString();
+          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+            reject(new Error(`API returned HTML (status ${res.statusCode}), possibly blocked`));
+            return;
+          }
+          const data = JSON.parse(text);
           if (data.code !== 200) { reject(new Error(data.msg || 'API error')); return; }
           resolve(data.data);
         } catch (e) { reject(e); }
