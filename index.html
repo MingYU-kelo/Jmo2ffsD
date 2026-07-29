@@ -201,123 +201,71 @@
       background: #2a2a00;
       outline: 1px solid #ff0;
     }
-    .island-toast {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-120px);
-      z-index: 9999;
-      width: auto;
-      max-width: 90vw;
-      padding: 10px 22px;
-      border-radius: 24px;
-      background: rgba(28, 28, 30, 0.72);
-      backdrop-filter: blur(24px) saturate(1.8);
-      -webkit-backdrop-filter: blur(24px) saturate(1.8);
-      border: 0.5px solid rgba(255,255,255,0.12);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 0.5px 0 rgba(255,255,255,0.08);
-      text-align: center;
-      font-family: inherit;
-      font-size: 15px;
-      line-height: 1.4;
-      color: #f5f5f5;
-      white-space: nowrap;
-      transition: transform 0.5s cubic-bezier(0.22, 0.95, 0.34, 1), width 0.35s cubic-bezier(0.22, 0.95, 0.34, 1), padding 0.35s cubic-bezier(0.22, 0.95, 0.34, 1);
-      pointer-events: none;
-      will-change: transform, width;
-    }
-    .island-toast.show {
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 <body>
 <main>
-  <a class="brand hover-bold" href="./">Flux HvH&#xA0;月度统计</a>
+  <a class="brand hover-bold" href="./">Flux HvH&#xA0;&#x6708;&#x5EA6;&#x7EDF;&#x8BA1;</a>
   <p class="byline">
-    Flux排行榜 · 含个人榜、公会榜[榜单按自然月统计]<span class="cache-badge" id="cache-badge"></span>
+    Flux&#x6392;&#x884C;&#x699C; &#xB7; &#x542B;&#x4E2A;&#x4EBA;&#x699C;&#x3001;&#x516C;&#x4F1A;&#x699C;[&#x699C;&#x5355;&#x6309;&#x81EA;&#x7136;&#x6708;&#x7EDF;&#x8BA1;]<span class="cache-badge" id="cache-badge"></span>
   </p>
-  <p class="byline">公会详情数据基于2025年1月至今的Flux排行榜记录统计，非全量实时数据，可能存在遗漏，显示结果仅供参考。公会内成员分数以及KD等也是按自然月统计的。</p>
+  <p class="byline">&#x516C;&#x4F1A;&#x8BE6;&#x60C5;&#x6570;&#x636E;&#x57FA;&#x4E8E;2025&#x5E74;1&#x6708;&#x81F3;&#x4ECA;&#x7684;Flux&#x6392;&#x884C;&#x699C;&#x8BB0;&#x5F55;&#x7EDF;&#x8BA1;&#xFF0C;&#x975E;&#x5168;&#x91CF;&#x5B9E;&#x65F6;&#x6570;&#x636E;&#xFF0C;&#x53EF;&#x80FD;&#x5B58;&#x5728;&#x9057;&#x6F0F;&#xFF0C;&#x663E;&#x793A;&#x7ED3;&#x679C;&#x4EC5;&#x4F9B;&#x53C2;&#x8003;&#x3002;&#x516C;&#x4F1A;&#x5185;&#x6210;&#x5458;&#x5206;&#x6570;&#x4EE5;&#x53CA;KD&#x7B49;&#x4E5F;&#x662F;&#x6309;&#x81EA;&#x7136;&#x6708;&#x7EDF;&#x8BA1;&#x7684;&#x3002;</p>
 
   <section id="overview-section">
-    <h2>月度概览</h2>
+    <h2>&#x6708;&#x5EA6;&#x6982;&#x89C8;</h2>
     <div class="type-toggle" id="overview-toggle">
-      <button data-type="user" class="active">个人</button
-      ><button data-type="guild">公会</button>
+      <button data-type="user" class="active">&#x4E2A;&#x4EBA;</button
+      ><button data-type="guild">&#x516C;&#x4F1A;</button>
     </div>
-    <p class="byline" id="overview-desc">加载中...</p>
+    <p class="byline" id="overview-desc">&#x52A0;&#x8F7D;&#x4E2D;...</p>
     <div id="month-table-container"></div>
     <p class="byline error-msg" id="error-msg" style="display:none"></p>
   </section>
 
   <section id="detail-section" style="display:none">
-    <a class="back-link hover-bold" href="#" id="back-btn">← 返回概览</a>
+    <a class="back-link hover-bold" href="#" id="back-btn">&#x2190; &#x8FD4;&#x56DE;&#x6982;&#x89C8;</a>
     <h2 id="detail-title"></h2>
     <div class="summary-bar" id="summary-bar"></div>
     <div class="toolbar">
       <div class="search-wrap">
-        <input class="search-input" id="search-input" type="text" placeholder="搜索 UID / 玩家名 / 公会名..." />
+        <input class="search-input" id="search-input" type="text" placeholder="&#x641C;&#x7D22; UID / &#x73A9;&#x5BB6;&#x540D; / &#x516C;&#x4F1A;&#x540D;..." />
       </div>
-      <p class="byline" id="detail-desc">加载中...</p>
-    </div>
-    <div class="progress-bar" id="detail-progress-bar" style="display:none">
-      <div class="progress-fill" id="detail-progress-fill" style="width:0%"></div>
+      <p class="byline" id="detail-desc">&#x52A0;&#x8F7D;&#x4E2D;...</p>
     </div>
     <div id="detail-table-container"></div>
   </section>
 
   <section id="guild-section" style="display:none">
-    <a class="back-link hover-bold" href="#" id="guild-back-btn">← 返回上一页</a>
+    <a class="back-link hover-bold" href="#" id="guild-back-btn">&#x2190; &#x8FD4;&#x56DE;&#x4E0A;&#x4E00;&#x9875;</a>
     <h2 id="guild-title"></h2>
     <div class="summary-bar" id="guild-summary"></div>
     <div class="toolbar">
       <div class="search-wrap">
-        <input class="search-input" id="guild-search-input" type="text" placeholder="搜索 UID / 用户名..." />
+        <input class="search-input" id="guild-search-input" type="text" placeholder="&#x641C;&#x7D22; UID / &#x7528;&#x6237;&#x540D;..." />
       </div>
       <p class="byline" id="guild-desc"></p>
     </div>
     <div id="guild-table-container"></div>
   </section>
 </main>
-<div class="island-toast" id="island-toast"></div>
 
 <script>
-const CACHE_OVERVIEW = '/api/cached/overview';
-const CACHE_MONTH = '/api/cached/month/';
-const CACHE_GUILD_MONTH = '/api/cached/guild/month/';
-const API_DATES = '/api/endpoint/top/user/history/dates?type=4';
-const API_GUILD_DATES = '/api/endpoint/top/guild/history/dates?type=4';
-const API_HISTORY = '/api/endpoint/top/user/history?type=4';
-const API_GUILD_HISTORY = '/api/endpoint/top/guild/history?type=4';
+const DATA_OVERVIEW = '/data/overview.json';
+const DATA_MONTH = '/data/';
+const DATA_GUILD_MONTH = '/data/guild-';
+const DATA_GUILD_MEMBERS = '/data/guild-members-';
 
-const PAGE_SIZE = 10;
-const CONCURRENCY = 5;
 const PAGE_ROWS = 20;
 
 let currentType = 'user';
 let allDates = { user: [], guild: [] };
 let monthGroups = { user: {}, guild: {} };
 let cachedOverview = null;
-let detailAbortController = null;
 let currentDetailData = null;
 let detailPage = 1;
 let overviewPage = 1;
 let guildPage = 1;
 let currentGuildData = null;
-let islandTimer = null;
-
-function showIsland(msg) {
-  const el = $('#island-toast');
-  if (islandTimer) clearTimeout(islandTimer);
-  el.classList.remove('show');
-  el.style.width = 'auto';
-  void el.offsetWidth;
-  el.textContent = msg;
-  el.classList.add('show');
-  islandTimer = setTimeout(() => {
-    el.classList.remove('show');
-  }, 10000);
-}
 
 function $(s) { return document.querySelector(s); }
 function $$(s) { return document.querySelectorAll(s); }
@@ -330,18 +278,7 @@ function fmtMonth(ym) {
 async function fetchJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.code && json.code !== 200) throw new Error(json.msg || 'API error');
-  return json.code ? json.data : json;
-}
-
-async function fetchDates() {
-  const [userData, guildData] = await Promise.all([
-    fetchJSON(API_DATES).catch(() => []),
-    fetchJSON(API_GUILD_DATES).catch(() => []),
-  ]);
-  allDates.user = userData.sort().reverse();
-  allDates.guild = guildData.sort().reverse();
+  return res.json();
 }
 
 function groupByMonth(dates) {
@@ -366,42 +303,41 @@ function renderMonthTable() {
   const start = (overviewPage - 1) * PAGE_ROWS;
   const pageMonths = months.slice(start, start + PAGE_ROWS);
 
-  let html = `<table class="stats-table"><thead><tr><th>月份</th><th>数据天数</th><th>${label}排名条目</th></tr></thead><tbody>`;
+  let html = '<table class="stats-table"><thead><tr><th>月份</th><th>数据天数</th><th>' + label + '排名条目</th></tr></thead><tbody>';
 
   for (const ym of pageMonths) {
     const dayCount = groups[ym].length;
     let entryText = '-';
     let entryTitle = '';
+    const entryCountEl = '<td class="entry-count" data-month="' + ym + '">-</td>';
 
     if (cachedOverview && cachedOverview[cacheKey] && cachedOverview[cacheKey][ym]) {
       const m = cachedOverview[cacheKey][ym];
       entryText = m.totalEntries.toLocaleString();
-      entryTitle = `去重${label}: ${m.userCount}`;
+      entryTitle = '去重' + label + ': ' + m.userCount;
     }
 
-    html += `<tr data-month="${ym}">
-      <td>${fmtMonth(ym)}</td>
-      <td>${dayCount}</td>
-      <td class="entry-count" data-month="${ym}" title="${escAttr(entryTitle)}">${entryText}</td>
-    </tr>`;
+    html += '<tr data-month="' + ym + '">'
+      + '<td>' + fmtMonth(ym) + '</td>'
+      + '<td>' + dayCount + '</td>'
+      + '<td class="entry-count" data-month="' + ym + '" title="' + escAttr(entryTitle) + '">' + entryText + '</td>'
+      + '</tr>';
   }
 
   html += '</tbody></table>';
 
   if (totalPages > 1) {
-    html += `<div class="pager">
-      <button id="overview-prev"${overviewPage <= 1 ? ' disabled' : ''}>上一页</button>
-      <span>第</span><input id="overview-page-input" type="text" value="${overviewPage}"><span>/ ${totalPages} 页</span>
-      <button id="overview-next"${overviewPage >= totalPages ? ' disabled' : ''}>下一页</button>
-    </div>`;
+    html += '<div class="pager">'
+      + '<button id="overview-prev"' + (overviewPage <= 1 ? ' disabled' : '') + '>上一页</button>'
+      + '<span>第</span><input id="overview-page-input" type="text" value="' + overviewPage + '"><span>/ ' + totalPages + ' 页</span>'
+      + '<button id="overview-next"' + (overviewPage >= totalPages ? ' disabled' : '') + '>下一页</button>'
+      + '</div>';
   }
 
   $('#month-table-container').innerHTML = html;
 
   for (const tr of $$('.stats-table tbody tr')) {
-    tr.addEventListener('click', () => {
-      showMonthDetail(tr.dataset.month);
-    });
+    tr.addEventListener('click', () => { showMonthDetail(tr.dataset.month); });
   }
 
   const prevBtn = $('#overview-prev');
@@ -427,30 +363,32 @@ function updateOverviewToggle() {
 
 async function loadOverview() {
   try {
-    cachedOverview = await fetchJSON(CACHE_OVERVIEW);
+    cachedOverview = await fetchJSON(DATA_OVERVIEW);
+    allDates.user = cachedOverview.dates || [];
+    allDates.guild = cachedOverview.guildDates || [];
+    monthGroups.user = groupByMonth(allDates.user);
+    monthGroups.guild = groupByMonth(allDates.guild);
   } catch (e) {
-    console.log('Cache miss, using live API');
+    console.error('Failed to load overview:', e);
     cachedOverview = null;
+    allDates.user = [];
+    allDates.guild = [];
+    monthGroups.user = {};
+    monthGroups.guild = {};
   }
-
-  await fetchDates();
-  monthGroups.user = groupByMonth(allDates.user);
-  monthGroups.guild = groupByMonth(allDates.guild);
-  monthGroups = monthGroups;
 
   if (cachedOverview && cachedOverview.lastSync) {
     const syncDate = new Date(cachedOverview.lastSync);
     const guildMonths = cachedOverview.guildMonths ? Object.keys(cachedOverview.guildMonths).length : 0;
     $('#cache-badge').textContent =
-      `(已缓存 · 玩家${Object.keys(cachedOverview.months || {}).length}月 · 公会${guildMonths}月)`;
+      '(已缓存 · 玩家' + Object.keys(cachedOverview.months || {}).length + '月 · 公会' + guildMonths + '月)';
   } else {
-    $('#cache-badge').textContent = '(实时)';
+    $('#cache-badge').textContent = '(无数据)';
   }
 
   const groups = monthGroups[currentType];
-  const totalMonths = Object.keys(groups).length;
   const dates = currentType === 'user' ? allDates.user : allDates.guild;
-  $('#overview-desc').textContent = `共 ${totalMonths} 个月，${dates.length} 天数据`;
+  $('#overview-desc').textContent = '共 ' + Object.keys(groups).length + ' 个月，' + dates.length + ' 天数据';
 
   renderMonthTable();
 }
@@ -463,75 +401,38 @@ $('#overview-toggle').addEventListener('click', (e) => {
   updateOverviewToggle();
   const groups = monthGroups[currentType];
   const dates = currentType === 'user' ? allDates.user : allDates.guild;
-  $('#overview-desc').textContent = `共 ${Object.keys(groups).length} 个月，${dates.length} 天数据`;
+  $('#overview-desc').textContent = '共 ' + Object.keys(groups).length + ' 个月，' + dates.length + ' 天数据';
   renderMonthTable();
 });
 
-async function fetchDailyRanking(date, pageNum = 1) {
-  const endpoint = currentType === 'user' ? API_HISTORY : API_GUILD_HISTORY;
-  return fetchJSON(`${endpoint}&date=${date}&pageNum=${pageNum}&pageSize=${PAGE_SIZE}`);
-}
-
-async function fetchAllPagesForDate(date) {
-  const first = await fetchDailyRanking(date, 1);
-  if (first.total <= PAGE_SIZE) return first.rows;
-
-  const totalPages = Math.ceil(first.total / PAGE_SIZE);
-  const allRows = [...first.rows];
-
-  for (let page = 2; page <= totalPages; page += CONCURRENCY) {
-    const batch = [];
-    for (let p = page; p < page + CONCURRENCY && p <= totalPages; p++) {
-      batch.push(fetchDailyRanking(date, p));
-    }
-    const results = await Promise.all(batch);
-    for (const r of results) {
-      allRows.push(...r.rows);
-    }
-  }
-
-  return allRows;
-}
-
-function showFromCache(ym) {
-  const endpoint = currentType === 'user' ? CACHE_MONTH : CACHE_GUILD_MONTH;
-  return fetchJSON(endpoint + ym).catch(() => null);
-}
-
 function renderDetail(ym, data) {
-  const dates = data.dates.length;
   const users = data.users;
-  const totalEntries = data.totalEntries;
-
   const isGuild = currentType === 'guild';
-  const label = isGuild ? '公会' : '玩家';
-  const idLabel = isGuild ? 'GID' : 'UID';
   const idField = isGuild ? 'guildId' : 'id';
   const nameField = isGuild ? 'guildName' : 'userName';
+  const idLabel = isGuild ? 'GID' : 'UID';
 
   currentDetailData = { ym, data, users };
 
   $('#detail-desc').style.display = 'none';
-  $('#detail-progress-bar').style.display = 'none';
 
-  $('#summary-bar').innerHTML = `
-    <div class="summary-item">
-      <span class="summary-label">数据天数</span>
-      <span class="summary-value">${dates}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">上榜人次</span>
-      <span class="summary-value">${totalEntries.toLocaleString()}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">去重${label}</span>
-      <span class="summary-value">${users.length}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">同步时间</span>
-      <span class="summary-value" style="font-size:13px">${new Date(data.syncedAt).toLocaleString()}</span>
-    </div>
-  `;
+  $('#summary-bar').innerHTML =
+    '<div class="summary-item">'
+    + '<span class="summary-label">数据天数</span>'
+    + '<span class="summary-value">' + data.dates.length + '</span>'
+    + '</div>'
+    + '<div class="summary-item">'
+    + '<span class="summary-label">上榜人次</span>'
+    + '<span class="summary-value">' + data.totalEntries.toLocaleString() + '</span>'
+    + '</div>'
+    + '<div class="summary-item">'
+    + '<span class="summary-label">去重' + (isGuild ? '公会' : '玩家') + '</span>'
+    + '<span class="summary-value">' + users.length + '</span>'
+    + '</div>'
+    + '<div class="summary-item">'
+    + '<span class="summary-label">同步时间</span>'
+    + '<span class="summary-value" style="font-size:13px">' + (data.syncedAt ? new Date(data.syncedAt).toLocaleString() : '-') + '</span>'
+    + '</div>';
 
   if (users.length === 0) {
     $('#detail-table-container').innerHTML = '<p>暂无数据</p>';
@@ -577,40 +478,40 @@ function renderDetailPage() {
   const start = (detailPage - 1) * PAGE_ROWS;
   const pageUsers = filtered.slice(start, start + PAGE_ROWS);
 
-  let html = `<table class="detail-table" id="detail-table"><thead><tr>
-    <th>#</th><th>${currentType === 'guild' ? '公会' : '玩家'}</th><th>出现天数</th><th>月总积分</th><th>K/D</th>
-  </tr></thead><tbody>`;
+  let html = '<table class="detail-table" id="detail-table"><thead><tr>'
+    + '<th>#</th><th>' + (currentType === 'guild' ? '公会' : '玩家') + '</th><th>出现天数</th><th>月总积分</th><th>K/D</th>'
+    + '</tr></thead><tbody>';
 
   if (pageUsers.length === 0) {
-    html += `<tr><td colspan="5" style="text-align:center;opacity:0.5">无匹配结果</td></tr>`;
+    html += '<tr><td colspan="5" style="text-align:center;opacity:0.5">无匹配结果</td></tr>';
   } else {
     for (let i = 0; i < pageUsers.length; i++) {
       const u = pageUsers[i];
       const kd = u.totalDeath > 0 ? (u.totalKill / u.totalDeath).toFixed(2) : '0.00';
       const idVal = u[idField] || '';
       let nameCell = esc(u[nameField] || '');
-      nameCell += `<span class="uid">${idLabel}:${idVal}</span>`;
+      nameCell += '<span class="uid">' + idLabel + ':' + idVal + '</span>';
       const dataAttr = currentType === 'guild'
-        ? ` data-guild-id="${idVal}" data-guild-name="${escAttr(u[nameField] || '')}"`
-        : ` data-uid="${idVal}" data-uname="${escAttr(u[nameField] || '')}"`;
-      html += `<tr${dataAttr}>
-        <td>${start + i + 1}</td>
-        <td>${nameCell}</td>
-        <td>${u.appearances}</td>
-        <td>${u.totalScore.toLocaleString()}</td>
-        <td>${kd}</td>
-      </tr>`;
+        ? ' data-guild-id="' + idVal + '" data-guild-name="' + escAttr(u[nameField] || '') + '"'
+        : ' data-uid="' + idVal + '" data-uname="' + escAttr(u[nameField] || '') + '"';
+      html += '<tr' + dataAttr + '>'
+        + '<td>' + (start + i + 1) + '</td>'
+        + '<td>' + nameCell + '</td>'
+        + '<td>' + u.appearances + '</td>'
+        + '<td>' + u.totalScore.toLocaleString() + '</td>'
+        + '<td>' + kd + '</td>'
+        + '</tr>';
     }
   }
 
   html += '</tbody></table>';
 
   if (totalPages > 1) {
-    html += `<div class="pager">
-      <button id="detail-prev"${detailPage <= 1 ? ' disabled' : ''}>上一页</button>
-      <span>第</span><input id="detail-page-input" type="text" value="${detailPage}"><span>/ ${totalPages} 页 (${filtered.length}条)</span>
-      <button id="detail-next"${detailPage >= totalPages ? ' disabled' : ''}>下一页</button>
-    </div>`;
+    html += '<div class="pager">'
+      + '<button id="detail-prev"' + (detailPage <= 1 ? ' disabled' : '') + '>上一页</button>'
+      + '<span>第</span><input id="detail-page-input" type="text" value="' + detailPage + '"><span>/ ' + totalPages + ' 页 (' + filtered.length + '条)</span>'
+      + '<button id="detail-next"' + (detailPage >= totalPages ? ' disabled' : '') + '>下一页</button>'
+      + '</div>';
   }
 
   $('#detail-table-container').innerHTML = html;
@@ -632,16 +533,16 @@ function renderDetailPage() {
         tr.title = '点击查看所属公会';
         tr.addEventListener('click', async () => {
           try {
-            const guilds = await fetchJSON('/api/cached/guild/members/' + ym);
-            if (guilds.pending) {
-              showIsland('公会成员数据尚未生成，请等待凌晨同步');
+            const guilds = await fetchJSON(DATA_GUILD_MEMBERS + ym + '.json');
+            if (!Array.isArray(guilds) || guilds.length === 0) {
+              alert(uname + ' 未加入任何公会 (数据未生成)');
               return;
             }
             const found = guilds.find(g => g.users.some(u => String(u.uid) === uid));
             if (found) {
               openGuildPage(found.guildId, found.guildName, ym, parseInt(uid));
             } else {
-              showIsland(`${uname} 未加入任何公会`);
+              alert(uname + ' 未加入任何公会');
             }
           } catch (e) {
             alert('查询失败: ' + e.message);
@@ -669,16 +570,16 @@ function renderDetailPage() {
 async function openGuildPage(guildId, guildName, ym, highlightUid) {
   $('#detail-section').style.display = 'none';
   $('#guild-section').style.display = 'block';
-  $('#guild-title').textContent = `${guildName} · ${fmtMonth(ym)}`;
+  $('#guild-title').textContent = guildName + ' · ' + fmtMonth(ym);
   $('#guild-desc').textContent = '加载中...';
   $('#guild-table-container').innerHTML = '';
   $('#guild-summary').innerHTML = '';
   $('#guild-search-input').value = '';
 
   try {
-    const guilds = await fetchJSON('/api/cached/guild/members/' + ym);
-    if (guilds.pending) {
-      $('#guild-desc').textContent = guilds.msg;
+    const guilds = await fetchJSON(DATA_GUILD_MEMBERS + ym + '.json');
+    if (!Array.isArray(guilds) || guilds.length === 0) {
+      $('#guild-desc').textContent = '公会成员数据尚未生成，请等待每日同步';
       return;
     }
 
@@ -724,20 +625,19 @@ function renderGuildPage() {
   const start = (guildPage - 1) * PAGE_ROWS;
   const pageUsers = filtered.slice(start, start + PAGE_ROWS);
 
-  $('#guild-summary').innerHTML = `
-    <div class="summary-item">
-      <span class="summary-label">成员总数</span>
-      <span class="summary-value">${guild.users.length}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">总击杀</span>
-      <span class="summary-value">${guild.totalKill.toLocaleString()}</span>
-    </div>
-    <div class="summary-item">
-      <span class="summary-label">均 KD</span>
-      <span class="summary-value">${guild.avgKd}</span>
-    </div>
-  `;
+  $('#guild-summary').innerHTML =
+    '<div class="summary-item">'
+    + '<span class="summary-label">成员总数</span>'
+    + '<span class="summary-value">' + guild.users.length + '</span>'
+    + '</div>'
+    + '<div class="summary-item">'
+    + '<span class="summary-label">总击杀</span>'
+    + '<span class="summary-value">' + guild.totalKill.toLocaleString() + '</span>'
+    + '</div>'
+    + '<div class="summary-item">'
+    + '<span class="summary-label">均 KD</span>'
+    + '<span class="summary-value">' + guild.avgKd + '</span>'
+    + '</div>';
 
   let html = '<table class="detail-table"><thead><tr><th>#</th><th>用户</th><th>击杀</th><th>死亡</th><th>KD</th><th>积分</th></tr></thead><tbody>';
 
@@ -747,25 +647,25 @@ function renderGuildPage() {
     for (let i = 0; i < pageUsers.length; i++) {
       const u = pageUsers[i];
       const highlight = currentGuildData.highlightUid === u.uid ? ' class="highlight-row"' : '';
-      html += `<tr${highlight} data-guild-uid="${u.uid}">
-        <td>${start + i + 1}</td>
-        <td>${esc(u.userName)}<span class="uid">UID:${u.uid}</span></td>
-        <td>${u.kills.toLocaleString()}</td>
-        <td>${u.deaths.toLocaleString()}</td>
-        <td>${u.kd.toFixed(2)}</td>
-        <td>${u.score.toLocaleString()}</td>
-      </tr>`;
+      html += '<tr' + highlight + ' data-guild-uid="' + u.uid + '">'
+        + '<td>' + (start + i + 1) + '</td>'
+        + '<td>' + esc(u.userName) + '<span class="uid">UID:' + u.uid + '</span></td>'
+        + '<td>' + u.kills.toLocaleString() + '</td>'
+        + '<td>' + u.deaths.toLocaleString() + '</td>'
+        + '<td>' + u.kd.toFixed(2) + '</td>'
+        + '<td>' + u.score.toLocaleString() + '</td>'
+        + '</tr>';
     }
   }
 
   html += '</tbody></table>';
 
   if (totalPages > 1) {
-    html += `<div class="pager">
-      <button id="guild-prev"${guildPage <= 1 ? ' disabled' : ''}>上一页</button>
-      <span>第</span><input id="guild-page-input" type="text" value="${guildPage}"><span>/ ${totalPages} 页 (${filtered.length}条)</span>
-      <button id="guild-next"${guildPage >= totalPages ? ' disabled' : ''}>下一页</button>
-    </div>`;
+    html += '<div class="pager">'
+      + '<button id="guild-prev"' + (guildPage <= 1 ? ' disabled' : '') + '>上一页</button>'
+      + '<span>第</span><input id="guild-page-input" type="text" value="' + guildPage + '"><span>/ ' + totalPages + ' 页 (' + filtered.length + '条)</span>'
+      + '<button id="guild-next"' + (guildPage >= totalPages ? ' disabled' : '') + '>下一页</button>'
+      + '</div>';
   }
 
   $('#guild-table-container').innerHTML = html;
@@ -811,11 +711,6 @@ $('#search-input').addEventListener('input', () => {
 });
 
 async function showMonthDetail(ym) {
-  if (detailAbortController) {
-    detailAbortController.abort();
-  }
-  detailAbortController = new AbortController();
-
   $('#overview-section').style.display = 'none';
   $('#detail-section').style.display = 'block';
   $('#detail-title').textContent = fmtMonth(ym);
@@ -824,92 +719,23 @@ async function showMonthDetail(ym) {
   $('#search-input').value = '';
   currentDetailData = null;
 
-  const cached = await showFromCache(ym);
-  if (cached && cached.users) {
-    renderDetail(ym, cached);
-    return;
-  }
-
-  const dates = monthGroups[currentType] && monthGroups[currentType][ym]
-    ? monthGroups[currentType][ym]
-    : [];
-
-  if (dates.length === 0) {
-    $('#detail-desc').textContent = '暂无数据';
-    return;
-  }
-
-  $('#detail-desc').textContent = '加载中...';
-  $('#detail-desc').style.display = 'block';
-  $('#search-input').style.display = 'none';
-  const progressBar = $('#detail-progress-bar');
-  const progressFill = $('#detail-progress-fill');
-  progressBar.style.display = 'block';
-  progressFill.style.width = '0%';
-
-  const rowMap = new Map();
-  let totalEntries = 0;
-  let totalScore = 0;
-  const isGuild = currentType === 'guild';
-  const idField = isGuild ? 'guildId' : 'id';
-  const nameField = isGuild ? 'guildName' : 'userName';
-  const scoreField = isGuild ? 'guildScore' : 'userScore';
-
-  for (let i = 0; i < dates.length; i++) {
-    if (detailAbortController && detailAbortController.signal.aborted) return;
-    const date = dates[i];
-    try {
-      const rows = await fetchAllPagesForDate(date);
-      if (detailAbortController && detailAbortController.signal.aborted) return;
-      totalEntries += rows.length;
-
-      for (const row of rows) {
-        totalScore += row[scoreField] || 0;
-        const key = String(row[idField]);
-        if (!rowMap.has(key)) {
-          rowMap.set(key, {
-            [idField]: row[idField],
-            [nameField]: row[nameField],
-            ownerName: row.ownerName || null,
-            appearances: 0,
-            totalScore: 0,
-            totalKill: 0,
-            totalDeath: 0,
-          });
-        }
-        const u = rowMap.get(key);
-        u.appearances++;
-        u.totalScore += row[scoreField] || 0;
-        u.totalKill += parseInt(row.kill) || 0;
-        u.totalDeath += parseInt(row.death) || 0;
-      }
-    } catch (e) {
-      console.error(`Failed to fetch ${date}:`, e);
+  try {
+    const endpoint = currentType === 'user' ? DATA_MONTH : DATA_GUILD_MONTH;
+    const data = await fetchJSON(endpoint + ym + '.json');
+    if (data && data.users) {
+      renderDetail(ym, data);
+    } else {
+      $('#detail-desc').textContent = '暂无数据';
+      $('#detail-desc').style.display = 'block';
     }
-
-    progressFill.style.width = Math.round(((i + 1) / dates.length) * 100) + '%';
-    $('#detail-desc').textContent = `从 Flux 加载中... ${i + 1}/${dates.length} 天`;
+  } catch (e) {
+    $('#detail-desc').textContent = '加载失败: ' + e.message;
+    $('#detail-desc').style.display = 'block';
   }
-
-  if (detailAbortController && detailAbortController.signal.aborted) return;
-
-  const users = [...rowMap.values()].sort((a, b) => b.totalScore - a.totalScore);
-  const data = {
-    dates,
-    totalEntries,
-    userCount: users.length,
-    users,
-    syncedAt: new Date().toISOString(),
-  };
-  renderDetail(ym, data);
 }
 
 $('#back-btn').addEventListener('click', (e) => {
   e.preventDefault();
-  if (detailAbortController) {
-    detailAbortController.abort();
-    detailAbortController = null;
-  }
   currentDetailData = null;
   currentGuildData = null;
   $('#detail-section').style.display = 'none';

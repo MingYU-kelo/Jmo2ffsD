@@ -1,0 +1,32 @@
+name: Daily Sync
+
+on:
+  schedule:
+    - cron: '0 20 * * *'  # UTC 20:00 = Beijing 04:00
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run sync
+        run: node scripts/sync.js
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ cache.json timeline.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Sync data $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
+            git push
+          fi
