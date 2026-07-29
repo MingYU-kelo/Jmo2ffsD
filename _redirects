@@ -1,0 +1,6 @@
+/.git/* /404.html 404
+/scripts/* /404.html 404
+/cache.json /404.html 404
+/timeline.json /404.html 404
+/.github/* /404.html 404
+/.* /404.html 404
