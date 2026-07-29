@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Flux HvH 月度统计</title>
+  <link rel="icon" href="favicon.png"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    @font-face {
+      font-family: "ZH CN";
+      src: url("zh-cn.ttf") format("truetype");
+    }
+    body { font-family: "ZH CN", "Courier New", Courier, monospace; }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    .stats-table th,
+    .stats-table td {
+      text-align: left;
+      padding: 4px 8px;
+    }
+    .stats-table th {
+      opacity: 0.6;
+      font-weight: inherit;
+    }
+    .stats-table tbody tr {
+      cursor: pointer;
+    }
+    .stats-table tbody tr:hover,
+    .stats-table tbody tr.active {
+      font-weight: 900;
+    }
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    .detail-table th,
+    .detail-table td {
+      text-align: left;
+      padding: 3px 8px;
+    }
+    .detail-table th {
+      opacity: 0.6;
+      font-weight: inherit;
+      font-size: 14px;
+    }
+    .detail-table tbody tr.hidden {
+      display: none;
+    }
+    .loading {
+      opacity: 0.5;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 14px;
+      opacity: 0.6;
+    }
+    .back-link:hover {
+      opacity: 1;
+    }
+    .error-msg {
+      color: var(--warning);
+      margin-top: 10px;
+    }
+    .summary-bar {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .summary-label {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+    .summary-value {
+      font-weight: 900;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background: #333;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--text);
+      transition: width 0.2s;
+    }
+    .uid {
+      opacity: 0.5;
+      font-size: 13px;
+      margin-left: 4px;
+    }
+    .cache-badge {
+      font-size: 11px;
+      opacity: 0.5;
+      margin-left: 6px;
+    }
+    .type-toggle {
+      display: inline-flex;
+      margin-bottom: 14px;
+    }
+    .type-toggle button {
+      background: none;
+      border: 1px solid #555;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 2px 12px;
+      cursor: pointer;
+    }
+    .type-toggle button:first-child {
+      border-right: none;
+    }
+    .type-toggle button.active {
+      background: var(--text);
+      color: var(--background);
+      font-weight: 900;
+    }
+    .search-wrap {
+      margin-bottom: 10px;
+    }
+    .search-input {
+      width: 100%;
+      max-width: 320px;
+      background: transparent;
+      border: 1px solid #555;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 4px 10px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--text);
+    }
+    .search-input::placeholder {
+      color: #666;
+    }
+    .no-results {
+      opacity: 0.6;
+      margin-top: 10px;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .pager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .pager button {
+      background: none;
+      border: 1px solid #555;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 2px 10px;
+      cursor: pointer;
+    }
+    .pager button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .pager button:hover:not(:disabled) {
+      background: var(--text);
+      color: var(--background);
+    }
+    .pager span {
+      opacity: 0.6;
+    }
+    .pager input {
+      width: 40px;
+      background: transparent;
+      border: 1px solid #555;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 2px 4px;
+      text-align: center;
+      outline: none;
+    }
+    .pager input:focus {
+      border-color: var(--text);
+    }
+    .highlight-row {
+      background: #2a2a00;
+      outline: 1px solid #ff0;
+    }
+    .island-toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      z-index: 9999;
+      width: auto;
+      max-width: 90vw;
+      padding: 10px 22px;
+      border-radius: 24px;
+      background: rgba(28, 28, 30, 0.72);
+      backdrop-filter: blur(24px) saturate(1.8);
+      -webkit-backdrop-filter: blur(24px) saturate(1.8);
+      border: 0.5px solid rgba(255,255,255,0.12);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 0.5px 0 rgba(255,255,255,0.08);
+      text-align: center;
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.4;
+      color: #f5f5f5;
+      white-space: nowrap;
+      transition: transform 0.5s cubic-bezier(0.22, 0.95, 0.34, 1), width 0.35s cubic-bezier(0.22, 0.95, 0.34, 1), padding 0.35s cubic-bezier(0.22, 0.95, 0.34, 1);
+      pointer-events: none;
+      will-change: transform, width;
+    }
+    .island-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+<main>
+  <a class="brand hover-bold" href="./">Flux HvH&#xA0;月度统计</a>
+  <p class="byline">
+    Flux排行榜 · 含个人榜、公会榜[榜单按自然月统计]<span class="cache-badge" id="cache-badge"></span>
+  </p>
+  <p class="byline">公会详情数据基于2025年1月至今的Flux排行榜记录统计，非全量实时数据，可能存在遗漏，显示结果仅供参考。公会内成员分数以及KD等也是按自然月统计的。</p>
+
+  <section id="overview-section">
+    <h2>月度概览</h2>
+    <div class="type-toggle" id="overview-toggle">
+      <button data-type="user" class="active">个人</button
+      ><button data-type="guild">公会</button>
+    </div>
+    <p class="byline" id="overview-desc">加载中...</p>
+    <div id="month-table-container"></div>
+    <p class="byline error-msg" id="error-msg" style="display:none"></p>
+  </section>
+
+  <section id="detail-section" style="display:none">
+    <a class="back-link hover-bold" href="#" id="back-btn">← 返回概览</a>
+    <h2 id="detail-title"></h2>
+    <div class="summary-bar" id="summary-bar"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input class="search-input" id="search-input" type="text" placeholder="搜索 UID / 玩家名 / 公会名..." />
+      </div>
+      <p class="byline" id="detail-desc">加载中...</p>
+    </div>
+    <div class="progress-bar" id="detail-progress-bar" style="display:none">
+      <div class="progress-fill" id="detail-progress-fill" style="width:0%"></div>
+    </div>
+    <div id="detail-table-container"></div>
+  </section>
+
+  <section id="guild-section" style="display:none">
+    <a class="back-link hover-bold" href="#" id="guild-back-btn">← 返回上一页</a>
+    <h2 id="guild-title"></h2>
+    <div class="summary-bar" id="guild-summary"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input class="search-input" id="guild-search-input" type="text" placeholder="搜索 UID / 用户名..." />
+      </div>
+      <p class="byline" id="guild-desc"></p>
+    </div>
+    <div id="guild-table-container"></div>
+  </section>
+</main>
+<div class="island-toast" id="island-toast"></div>
+
+<script>
+const CACHE_OVERVIEW = '/api/cached/overview';
+const CACHE_MONTH = '/api/cached/month/';
+const CACHE_GUILD_MONTH = '/api/cached/guild/month/';
+const API_DATES = '/api/endpoint/top/user/history/dates?type=4';
+const API_GUILD_DATES = '/api/endpoint/top/guild/history/dates?type=4';
+const API_HISTORY = '/api/endpoint/top/user/history?type=4';
+const API_GUILD_HISTORY = '/api/endpoint/top/guild/history?type=4';
+
+const PAGE_SIZE = 10;
+const CONCURRENCY = 5;
+const PAGE_ROWS = 20;
+
+let currentType = 'user';
+let allDates = { user: [], guild: [] };
+let monthGroups = { user: {}, guild: {} };
+let cachedOverview = null;
+let detailAbortController = null;
+let currentDetailData = null;
+let detailPage = 1;
+let overviewPage = 1;
+let guildPage = 1;
+let currentGuildData = null;
+let islandTimer = null;
+
+function showIsland(msg) {
+  const el = $('#island-toast');
+  if (islandTimer) clearTimeout(islandTimer);
+  el.classList.remove('show');
+  el.style.width = 'auto';
+  void el.offsetWidth;
+  el.textContent = msg;
+  el.classList.add('show');
+  islandTimer = setTimeout(() => {
+    el.classList.remove('show');
+  }, 10000);
+}
+
+function $(s) { return document.querySelector(s); }
+function $$(s) { return document.querySelectorAll(s); }
+
+function fmtMonth(ym) {
+  const [y, m] = ym.split('-');
+  return `${y} 年 ${parseInt(m)} 月`;
+}
+
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.code && json.code !== 200) throw new Error(json.msg || 'API error');
+  return json.code ? json.data : json;
+}
+
+async function fetchDates() {
+  const [userData, guildData] = await Promise.all([
+    fetchJSON(API_DATES).catch(() => []),
+    fetchJSON(API_GUILD_DATES).catch(() => []),
+  ]);
+  allDates.user = userData.sort().reverse();
+  allDates.guild = guildData.sort().reverse();
+}
+
+function groupByMonth(dates) {
+  const groups = {};
+  for (const d of dates) {
+    const ym = d.substring(0, 7);
+    if (!groups[ym]) groups[ym] = [];
+    groups[ym].push(d);
+  }
+  return groups;
+}
+
+function renderMonthTable() {
+  const groups = monthGroups[currentType];
+  const months = Object.keys(groups).sort().reverse();
+  const label = currentType === 'user' ? '玩家' : '公会';
+  const cacheKey = currentType === 'user' ? 'months' : 'guildMonths';
+
+  const totalPages = Math.ceil(months.length / PAGE_ROWS);
+  if (overviewPage > totalPages) overviewPage = totalPages || 1;
+
+  const start = (overviewPage - 1) * PAGE_ROWS;
+  const pageMonths = months.slice(start, start + PAGE_ROWS);
+
+  let html = `<table class="stats-table"><thead><tr><th>月份</th><th>数据天数</th><th>${label}排名条目</th></tr></thead><tbody>`;
+
+  for (const ym of pageMonths) {
+    const dayCount = groups[ym].length;
+    let entryText = '-';
+    let entryTitle = '';
+
+    if (cachedOverview && cachedOverview[cacheKey] && cachedOverview[cacheKey][ym]) {
+      const m = cachedOverview[cacheKey][ym];
+      entryText = m.totalEntries.toLocaleString();
+      entryTitle = `去重${label}: ${m.userCount}`;
+    }
+
+    html += `<tr data-month="${ym}">
+      <td>${fmtMonth(ym)}</td>
+      <td>${dayCount}</td>
+      <td class="entry-count" data-month="${ym}" title="${escAttr(entryTitle)}">${entryText}</td>
+    </tr>`;
+  }
+
+  html += '</tbody></table>';
+
+  if (totalPages > 1) {
+    html += `<div class="pager">
+      <button id="overview-prev"${overviewPage <= 1 ? ' disabled' : ''}>上一页</button>
+      <span>第</span><input id="overview-page-input" type="text" value="${overviewPage}"><span>/ ${totalPages} 页</span>
+      <button id="overview-next"${overviewPage >= totalPages ? ' disabled' : ''}>下一页</button>
+    </div>`;
+  }
+
+  $('#month-table-container').innerHTML = html;
+
+  for (const tr of $$('.stats-table tbody tr')) {
+    tr.addEventListener('click', () => {
+      showMonthDetail(tr.dataset.month);
+    });
+  }
+
+  const prevBtn = $('#overview-prev');
+  const nextBtn = $('#overview-next');
+  const pageInput = $('#overview-page-input');
+  if (prevBtn) prevBtn.addEventListener('click', () => { overviewPage--; renderMonthTable(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { overviewPage++; renderMonthTable(); });
+  if (pageInput) {
+    pageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const n = parseInt(pageInput.value);
+        if (n >= 1 && n <= totalPages) { overviewPage = n; renderMonthTable(); }
+      }
+    });
+  }
+}
+
+function updateOverviewToggle() {
+  for (const btn of $$('#overview-toggle button')) {
+    btn.classList.toggle('active', btn.dataset.type === currentType);
+  }
+}
+
+async function loadOverview() {
+  try {
+    cachedOverview = await fetchJSON(CACHE_OVERVIEW);
+  } catch (e) {
+    console.log('Cache miss, using live API');
+    cachedOverview = null;
+  }
+
+  await fetchDates();
+  monthGroups.user = groupByMonth(allDates.user);
+  monthGroups.guild = groupByMonth(allDates.guild);
+  monthGroups = monthGroups;
+
+  if (cachedOverview && cachedOverview.lastSync) {
+    const syncDate = new Date(cachedOverview.lastSync);
+    const guildMonths = cachedOverview.guildMonths ? Object.keys(cachedOverview.guildMonths).length : 0;
+    $('#cache-badge').textContent =
+      `(已缓存 · 玩家${Object.keys(cachedOverview.months || {}).length}月 · 公会${guildMonths}月)`;
+  } else {
+    $('#cache-badge').textContent = '(实时)';
+  }
+
+  const groups = monthGroups[currentType];
+  const totalMonths = Object.keys(groups).length;
+  const dates = currentType === 'user' ? allDates.user : allDates.guild;
+  $('#overview-desc').textContent = `共 ${totalMonths} 个月，${dates.length} 天数据`;
+
+  renderMonthTable();
+}
+
+$('#overview-toggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  currentType = btn.dataset.type;
+  overviewPage = 1;
+  updateOverviewToggle();
+  const groups = monthGroups[currentType];
+  const dates = currentType === 'user' ? allDates.user : allDates.guild;
+  $('#overview-desc').textContent = `共 ${Object.keys(groups).length} 个月，${dates.length} 天数据`;
+  renderMonthTable();
+});
+
+async function fetchDailyRanking(date, pageNum = 1) {
+  const endpoint = currentType === 'user' ? API_HISTORY : API_GUILD_HISTORY;
+  return fetchJSON(`${endpoint}&date=${date}&pageNum=${pageNum}&pageSize=${PAGE_SIZE}`);
+}
+
+async function fetchAllPagesForDate(date) {
+  const first = await fetchDailyRanking(date, 1);
+  if (first.total <= PAGE_SIZE) return first.rows;
+
+  const totalPages = Math.ceil(first.total / PAGE_SIZE);
+  const allRows = [...first.rows];
+
+  for (let page = 2; page <= totalPages; page += CONCURRENCY) {
+    const batch = [];
+    for (let p = page; p < page + CONCURRENCY && p <= totalPages; p++) {
+      batch.push(fetchDailyRanking(date, p));
+    }
+    const results = await Promise.all(batch);
+    for (const r of results) {
+      allRows.push(...r.rows);
+    }
+  }
+
+  return allRows;
+}
+
+function showFromCache(ym) {
+  const endpoint = currentType === 'user' ? CACHE_MONTH : CACHE_GUILD_MONTH;
+  return fetchJSON(endpoint + ym).catch(() => null);
+}
+
+function renderDetail(ym, data) {
+  const dates = data.dates.length;
+  const users = data.users;
+  const totalEntries = data.totalEntries;
+
+  const isGuild = currentType === 'guild';
+  const label = isGuild ? '公会' : '玩家';
+  const idLabel = isGuild ? 'GID' : 'UID';
+  const idField = isGuild ? 'guildId' : 'id';
+  const nameField = isGuild ? 'guildName' : 'userName';
+
+  currentDetailData = { ym, data, users };
+
+  $('#detail-desc').style.display = 'none';
+  $('#detail-progress-bar').style.display = 'none';
+
+  $('#summary-bar').innerHTML = `
+    <div class="summary-item">
+      <span class="summary-label">数据天数</span>
+      <span class="summary-value">${dates}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">上榜人次</span>
+      <span class="summary-value">${totalEntries.toLocaleString()}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">去重${label}</span>
+      <span class="summary-value">${users.length}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">同步时间</span>
+      <span class="summary-value" style="font-size:13px">${new Date(data.syncedAt).toLocaleString()}</span>
+    </div>
+  `;
+
+  if (users.length === 0) {
+    $('#detail-table-container').innerHTML = '<p>暂无数据</p>';
+    $('#search-input').style.display = 'none';
+    return;
+  }
+
+  $('#search-input').style.display = 'block';
+  $('#search-input').value = '';
+  renderTable(users, idField, nameField, idLabel);
+}
+
+function renderTable(users, idField, nameField, idLabel) {
+  currentDetailData.allUsers = users;
+  currentDetailData.idField = idField;
+  currentDetailData.nameField = nameField;
+  currentDetailData.idLabel = idLabel;
+  detailPage = 1;
+  renderDetailPage();
+}
+
+function getFilteredUsers() {
+  if (!currentDetailData || !currentDetailData.allUsers) return [];
+  const q = ($('#search-input').value || '').toLowerCase().trim();
+  const users = currentDetailData.allUsers;
+  const nameField = currentDetailData.nameField;
+  const idField = currentDetailData.idField;
+  if (!q) return users;
+  return users.filter(u => {
+    const name = (u[nameField] || '').toLowerCase();
+    const id = String(u[idField] || '').toLowerCase();
+    return name.includes(q) || id.includes(q);
+  });
+}
+
+function renderDetailPage() {
+  if (!currentDetailData || !currentDetailData.allUsers) return;
+
+  const { idField, nameField, idLabel } = currentDetailData;
+  const filtered = getFilteredUsers();
+  const totalPages = Math.ceil(filtered.length / PAGE_ROWS);
+  if (detailPage > totalPages) detailPage = totalPages || 1;
+  const start = (detailPage - 1) * PAGE_ROWS;
+  const pageUsers = filtered.slice(start, start + PAGE_ROWS);
+
+  let html = `<table class="detail-table" id="detail-table"><thead><tr>
+    <th>#</th><th>${currentType === 'guild' ? '公会' : '玩家'}</th><th>出现天数</th><th>月总积分</th><th>K/D</th>
+  </tr></thead><tbody>`;
+
+  if (pageUsers.length === 0) {
+    html += `<tr><td colspan="5" style="text-align:center;opacity:0.5">无匹配结果</td></tr>`;
+  } else {
+    for (let i = 0; i < pageUsers.length; i++) {
+      const u = pageUsers[i];
+      const kd = u.totalDeath > 0 ? (u.totalKill / u.totalDeath).toFixed(2) : '0.00';
+      const idVal = u[idField] || '';
+      let nameCell = esc(u[nameField] || '');
+      nameCell += `<span class="uid">${idLabel}:${idVal}</span>`;
+      const dataAttr = currentType === 'guild'
+        ? ` data-guild-id="${idVal}" data-guild-name="${escAttr(u[nameField] || '')}"`
+        : ` data-uid="${idVal}" data-uname="${escAttr(u[nameField] || '')}"`;
+      html += `<tr${dataAttr}>
+        <td>${start + i + 1}</td>
+        <td>${nameCell}</td>
+        <td>${u.appearances}</td>
+        <td>${u.totalScore.toLocaleString()}</td>
+        <td>${kd}</td>
+      </tr>`;
+    }
+  }
+
+  html += '</tbody></table>';
+
+  if (totalPages > 1) {
+    html += `<div class="pager">
+      <button id="detail-prev"${detailPage <= 1 ? ' disabled' : ''}>上一页</button>
+      <span>第</span><input id="detail-page-input" type="text" value="${detailPage}"><span>/ ${totalPages} 页 (${filtered.length}条)</span>
+      <button id="detail-next"${detailPage >= totalPages ? ' disabled' : ''}>下一页</button>
+    </div>`;
+  }
+
+  $('#detail-table-container').innerHTML = html;
+
+  if (currentDetailData && currentDetailData.ym) {
+    const ym = currentDetailData.ym;
+    for (const tr of $$('#detail-table tbody tr')) {
+      if (currentType === 'guild') {
+        const gid = tr.dataset.guildId;
+        const gname = tr.dataset.guildName;
+        if (!gid) continue;
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', () => openGuildPage(parseInt(gid), gname, ym));
+      } else {
+        const uid = tr.dataset.uid;
+        const uname = tr.dataset.uname;
+        if (!uid) continue;
+        tr.style.cursor = 'pointer';
+        tr.title = '点击查看所属公会';
+        tr.addEventListener('click', async () => {
+          try {
+            const guilds = await fetchJSON('/api/cached/guild/members/' + ym);
+            if (guilds.pending) {
+              showIsland('公会成员数据尚未生成，请等待凌晨同步');
+              return;
+            }
+            const found = guilds.find(g => g.users.some(u => String(u.uid) === uid));
+            if (found) {
+              openGuildPage(found.guildId, found.guildName, ym, parseInt(uid));
+            } else {
+              showIsland(`${uname} 未加入任何公会`);
+            }
+          } catch (e) {
+            alert('查询失败: ' + e.message);
+          }
+        });
+      }
+    }
+  }
+
+  const prevBtn = $('#detail-prev');
+  const nextBtn = $('#detail-next');
+  const pageInput = $('#detail-page-input');
+  if (prevBtn) prevBtn.addEventListener('click', () => { detailPage--; renderDetailPage(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { detailPage++; renderDetailPage(); });
+  if (pageInput) {
+    pageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const n = parseInt(pageInput.value);
+        if (n >= 1 && n <= totalPages) { detailPage = n; renderDetailPage(); }
+      }
+    });
+  }
+}
+
+async function openGuildPage(guildId, guildName, ym, highlightUid) {
+  $('#detail-section').style.display = 'none';
+  $('#guild-section').style.display = 'block';
+  $('#guild-title').textContent = `${guildName} · ${fmtMonth(ym)}`;
+  $('#guild-desc').textContent = '加载中...';
+  $('#guild-table-container').innerHTML = '';
+  $('#guild-summary').innerHTML = '';
+  $('#guild-search-input').value = '';
+
+  try {
+    const guilds = await fetchJSON('/api/cached/guild/members/' + ym);
+    if (guilds.pending) {
+      $('#guild-desc').textContent = guilds.msg;
+      return;
+    }
+
+    const guild = guilds.find(g => g.guildId === guildId);
+    if (!guild) {
+      $('#guild-desc').textContent = '该公会暂无成员数据';
+      return;
+    }
+
+    currentGuildData = {
+      guildId, guildName, ym, guild,
+      allUsers: guild.users.sort((a, b) => b.score - a.score),
+      highlightUid: highlightUid || null,
+    };
+    guildPage = 1;
+
+    if (highlightUid) {
+      const idx = currentGuildData.allUsers.findIndex(u => u.uid === highlightUid);
+      if (idx >= 0) guildPage = Math.floor(idx / PAGE_ROWS) + 1;
+    }
+
+    renderGuildPage();
+  } catch (e) {
+    $('#guild-desc').textContent = '加载失败: ' + e.message;
+  }
+}
+
+function getFilteredGuildUsers() {
+  if (!currentGuildData) return [];
+  const q = ($('#guild-search-input').value || '').toLowerCase().trim();
+  if (!q) return currentGuildData.allUsers;
+  return currentGuildData.allUsers.filter(u => {
+    return u.userName.toLowerCase().includes(q) || String(u.uid).includes(q);
+  });
+}
+
+function renderGuildPage() {
+  if (!currentGuildData) return;
+  const { guild } = currentGuildData;
+  const filtered = getFilteredGuildUsers();
+  const totalPages = Math.ceil(filtered.length / PAGE_ROWS);
+  if (guildPage > totalPages) guildPage = totalPages || 1;
+  const start = (guildPage - 1) * PAGE_ROWS;
+  const pageUsers = filtered.slice(start, start + PAGE_ROWS);
+
+  $('#guild-summary').innerHTML = `
+    <div class="summary-item">
+      <span class="summary-label">成员总数</span>
+      <span class="summary-value">${guild.users.length}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">总击杀</span>
+      <span class="summary-value">${guild.totalKill.toLocaleString()}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">均 KD</span>
+      <span class="summary-value">${guild.avgKd}</span>
+    </div>
+  `;
+
+  let html = '<table class="detail-table"><thead><tr><th>#</th><th>用户</th><th>击杀</th><th>死亡</th><th>KD</th><th>积分</th></tr></thead><tbody>';
+
+  if (pageUsers.length === 0) {
+    html += '<tr><td colspan="6" style="text-align:center;opacity:0.5">无匹配结果</td></tr>';
+  } else {
+    for (let i = 0; i < pageUsers.length; i++) {
+      const u = pageUsers[i];
+      const highlight = currentGuildData.highlightUid === u.uid ? ' class="highlight-row"' : '';
+      html += `<tr${highlight} data-guild-uid="${u.uid}">
+        <td>${start + i + 1}</td>
+        <td>${esc(u.userName)}<span class="uid">UID:${u.uid}</span></td>
+        <td>${u.kills.toLocaleString()}</td>
+        <td>${u.deaths.toLocaleString()}</td>
+        <td>${u.kd.toFixed(2)}</td>
+        <td>${u.score.toLocaleString()}</td>
+      </tr>`;
+    }
+  }
+
+  html += '</tbody></table>';
+
+  if (totalPages > 1) {
+    html += `<div class="pager">
+      <button id="guild-prev"${guildPage <= 1 ? ' disabled' : ''}>上一页</button>
+      <span>第</span><input id="guild-page-input" type="text" value="${guildPage}"><span>/ ${totalPages} 页 (${filtered.length}条)</span>
+      <button id="guild-next"${guildPage >= totalPages ? ' disabled' : ''}>下一页</button>
+    </div>`;
+  }
+
+  $('#guild-table-container').innerHTML = html;
+  $('#guild-desc').textContent = '';
+
+  if (currentGuildData.highlightUid) {
+    setTimeout(() => {
+      const row = document.querySelector('#guild-table-container tr.highlight-row');
+      if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  const prevBtn = $('#guild-prev');
+  const nextBtn = $('#guild-next');
+  const pageInput = $('#guild-page-input');
+  if (prevBtn) prevBtn.addEventListener('click', () => { guildPage--; renderGuildPage(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { guildPage++; renderGuildPage(); });
+  if (pageInput) {
+    pageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const n = parseInt(pageInput.value);
+        if (n >= 1 && n <= totalPages) { guildPage = n; renderGuildPage(); }
+      }
+    });
+  }
+}
+
+$('#guild-search-input').addEventListener('input', () => {
+  guildPage = 1;
+  renderGuildPage();
+});
+
+$('#guild-back-btn').addEventListener('click', (e) => {
+  e.preventDefault();
+  currentGuildData = null;
+  $('#guild-section').style.display = 'none';
+  $('#detail-section').style.display = 'block';
+});
+
+$('#search-input').addEventListener('input', () => {
+  detailPage = 1;
+  renderDetailPage();
+});
+
+async function showMonthDetail(ym) {
+  if (detailAbortController) {
+    detailAbortController.abort();
+  }
+  detailAbortController = new AbortController();
+
+  $('#overview-section').style.display = 'none';
+  $('#detail-section').style.display = 'block';
+  $('#detail-title').textContent = fmtMonth(ym);
+  $('#detail-table-container').innerHTML = '';
+  $('#summary-bar').innerHTML = '';
+  $('#search-input').value = '';
+  currentDetailData = null;
+
+  const cached = await showFromCache(ym);
+  if (cached && cached.users) {
+    renderDetail(ym, cached);
+    return;
+  }
+
+  const dates = monthGroups[currentType] && monthGroups[currentType][ym]
+    ? monthGroups[currentType][ym]
+    : [];
+
+  if (dates.length === 0) {
+    $('#detail-desc').textContent = '暂无数据';
+    return;
+  }
+
+  $('#detail-desc').textContent = '加载中...';
+  $('#detail-desc').style.display = 'block';
+  $('#search-input').style.display = 'none';
+  const progressBar = $('#detail-progress-bar');
+  const progressFill = $('#detail-progress-fill');
+  progressBar.style.display = 'block';
+  progressFill.style.width = '0%';
+
+  const rowMap = new Map();
+  let totalEntries = 0;
+  let totalScore = 0;
+  const isGuild = currentType === 'guild';
+  const idField = isGuild ? 'guildId' : 'id';
+  const nameField = isGuild ? 'guildName' : 'userName';
+  const scoreField = isGuild ? 'guildScore' : 'userScore';
+
+  for (let i = 0; i < dates.length; i++) {
+    if (detailAbortController && detailAbortController.signal.aborted) return;
+    const date = dates[i];
+    try {
+      const rows = await fetchAllPagesForDate(date);
+      if (detailAbortController && detailAbortController.signal.aborted) return;
+      totalEntries += rows.length;
+
+      for (const row of rows) {
+        totalScore += row[scoreField] || 0;
+        const key = String(row[idField]);
+        if (!rowMap.has(key)) {
+          rowMap.set(key, {
+            [idField]: row[idField],
+            [nameField]: row[nameField],
+            ownerName: row.ownerName || null,
+            appearances: 0,
+            totalScore: 0,
+            totalKill: 0,
+            totalDeath: 0,
+          });
+        }
+        const u = rowMap.get(key);
+        u.appearances++;
+        u.totalScore += row[scoreField] || 0;
+        u.totalKill += parseInt(row.kill) || 0;
+        u.totalDeath += parseInt(row.death) || 0;
+      }
+    } catch (e) {
+      console.error(`Failed to fetch ${date}:`, e);
+    }
+
+    progressFill.style.width = Math.round(((i + 1) / dates.length) * 100) + '%';
+    $('#detail-desc').textContent = `从 Flux 加载中... ${i + 1}/${dates.length} 天`;
+  }
+
+  if (detailAbortController && detailAbortController.signal.aborted) return;
+
+  const users = [...rowMap.values()].sort((a, b) => b.totalScore - a.totalScore);
+  const data = {
+    dates,
+    totalEntries,
+    userCount: users.length,
+    users,
+    syncedAt: new Date().toISOString(),
+  };
+  renderDetail(ym, data);
+}
+
+$('#back-btn').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (detailAbortController) {
+    detailAbortController.abort();
+    detailAbortController = null;
+  }
+  currentDetailData = null;
+  currentGuildData = null;
+  $('#detail-section').style.display = 'none';
+  $('#guild-section').style.display = 'none';
+  $('#overview-section').style.display = 'block';
+});
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function escAttr(s) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function init() {
+  try {
+    await loadOverview();
+  } catch (e) {
+    $('#error-msg').textContent = '加载数据失败: ' + e.message;
+    $('#error-msg').style.display = 'block';
+    $('#overview-desc').textContent = '';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

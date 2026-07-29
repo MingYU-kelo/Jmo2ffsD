@@ -1,0 +1,201 @@
+:root {
+  color-scheme: dark;
+  --background: #000000;
+  --text: #f5f5f5;
+  --warning: #ff1212;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+main {
+  width: min(100%, 760px);
+  padding: 28px 14px 44px;
+}
+
+p,
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+section {
+  margin-top: 42px;
+}
+
+h2 {
+  margin-bottom: 3px;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.brand {
+  display: block;
+  width: fit-content;
+}
+
+.brand:hover,
+.brand:focus-visible {
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.hover-bold:hover,
+.hover-bold:focus-visible {
+  font-weight: 900;
+}
+
+.hover-bold a:hover,
+.hover-bold a:focus-visible {
+  text-decoration: none;
+}
+
+.byline {
+  margin-top: 1px;
+}
+
+.plain-links a + a::before {
+  content: " ";
+  white-space: pre;
+}
+
+.purchase-group + .purchase-group {
+  margin-top: 20px;
+}
+
+.purchase-group p {
+  white-space: pre-wrap;
+}
+
+.accepting {
+  margin-top: 20px;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 12px;
+  margin-top: 17px;
+}
+
+.payment-method {
+  width: 37px;
+  height: 37px;
+  display: block;
+}
+
+.payment-method img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.payment-method:hover img,
+.payment-method:focus-visible img {
+  filter: drop-shadow(0 0 4px #ffffff);
+}
+
+.warning {
+  margin-top: 20px;
+  color: var(--warning);
+}
+
+.contact-links {
+  display: grid;
+  width: fit-content;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.contact-icon {
+  display: grid;
+  width: 43px;
+  height: 37px;
+  place-items: center;
+  border-radius: 8px;
+  background: #f7f7f7;
+  color: #101010;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.contact-icon.bilibili img {
+  width: 100%;
+  height: 100%;
+  padding: 7px;
+  transform: translateY(-3px);
+}
+
+.contact-link:hover,
+.contact-link:focus-visible {
+  text-decoration: none;
+}
+
+.contact-link:hover > span:last-child,
+.contact-link:focus-visible > span:last-child {
+  font-weight: 900;
+}
+
+.contact-link:hover .contact-icon.bilibili,
+.contact-link:focus-visible .contact-icon.bilibili {
+  filter: drop-shadow(0 0 2px #ffffff);
+}
+
+.shoutout-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.shoutout-list li::before {
+  content: "- ";
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 15px;
+  }
+
+  main {
+    padding-top: 18px;
+  }
+}
