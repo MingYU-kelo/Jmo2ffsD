@@ -6,14 +6,27 @@ const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DAILY_DIR = path.join(DATA_DIR, 'daily');
 const PAGE_SIZE = 10;
-const CONCURRENCY = 5;
+const CONCURRENCY = 3;
 
 // --- Helpers ---
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function fetchJSON(apiPath) {
+async function fetchJSON(apiPath, retries = 3) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await doFetchJSON(apiPath);
+    } catch (e) {
+      if (attempt === retries) throw e;
+      const wait = Math.pow(2, attempt) * 2000;
+      console.error(`[fetch] retry ${attempt + 1}/${retries} in ${wait / 1000}s: ${e.message}`);
+      await sleep(wait);
+    }
+  }
+}
+
+function doFetchJSON(apiPath) {
   return new Promise((resolve, reject) => {
     const targetUrl = API_BASE + apiPath;
     const parsed = new URL(targetUrl);
@@ -68,7 +81,7 @@ async function fetchAllPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(300);
+    if (page + CONCURRENCY <= totalPages) await sleep(1500);
   }
   return allRows;
 }
@@ -89,7 +102,7 @@ async function fetchAllGuildPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(300);
+    if (page + CONCURRENCY <= totalPages) await sleep(1500);
   }
   return allRows;
 }
@@ -399,7 +412,7 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
         }
 
         syncedDates.add(date);
-        if (i < datesToFetch.length - 1) await sleep(1500 + Math.random() * 1000);
+        if (i < datesToFetch.length - 1) await sleep(3000 + Math.random() * 2000);
       } catch (e) {
         console.error(`[sync-${type}] error ${date}:`, e.message);
       }
