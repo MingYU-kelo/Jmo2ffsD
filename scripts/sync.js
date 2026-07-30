@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const API_BASE = 'http://64.90.4.123:10086';
+const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PAGE_SIZE = 10;
 const CONCURRENCY = 5;
