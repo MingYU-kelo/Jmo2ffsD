@@ -345,13 +345,14 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
     const sortedDates = dates.sort();
     const cached = store[ym];
 
-    let datesToFetch;
-    if (!cached) {
-      datesToFetch = sortedDates;
-    } else {
-      const cachedDates = new Set(cached.dates || []);
-      datesToFetch = sortedDates.filter((d) => !cachedDates.has(d));
-    }
+    const prefix = cacheKey === 'dates' ? 'user-' : 'guild-';
+    const cachedDates = cached ? new Set(cached.dates || []) : new Set();
+    const maxBackfill = new Date(Date.now() - 60 * 86400000).toISOString().substring(0, 10);
+    const datesToFetch = sortedDates.filter((d) => {
+      if (!cachedDates.has(d)) return true;
+      if (d < maxBackfill) return false;
+      return !fs.existsSync(path.join(DAILY_DIR, `${prefix}${d}.json`));
+    });
 
     if (datesToFetch.length === 0) continue;
 
