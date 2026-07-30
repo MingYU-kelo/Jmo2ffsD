@@ -1,8 +1,8 @@
-const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const API_BASE = 'https://cshvh.cn';
+const API_BASE = 'http://64.90.4.123:10086';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PAGE_SIZE = 10;
 const CONCURRENCY = 5;
@@ -29,7 +29,7 @@ function fetchJSON(apiPath) {
       },
       timeout: 30000,
     };
-    const req = https.request(options, (res) => {
+    const req = http.request(options, (res) => {
       let body = [];
       res.on('data', (chunk) => body.push(chunk));
       res.on('end', () => {
