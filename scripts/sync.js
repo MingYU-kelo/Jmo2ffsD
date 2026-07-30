@@ -81,7 +81,7 @@ async function fetchAllPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(1500);
+    if (page + CONCURRENCY <= totalPages) await sleep(100);
   }
   return allRows;
 }
@@ -102,7 +102,7 @@ async function fetchAllGuildPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(1500);
+    if (page + CONCURRENCY <= totalPages) await sleep(100);
   }
   return allRows;
 }
@@ -360,10 +360,8 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
 
     const prefix = cacheKey === 'dates' ? 'user-' : 'guild-';
     const cachedDates = cached ? new Set(cached.dates || []) : new Set();
-    const maxBackfill = new Date(Date.now() - 60 * 86400000).toISOString().substring(0, 10);
     const datesToFetch = sortedDates.filter((d) => {
       if (!cachedDates.has(d)) return true;
-      if (d < maxBackfill) return false;
       return !fs.existsSync(path.join(DAILY_DIR, `${prefix}${d}.json`));
     });
 
@@ -412,7 +410,7 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
         }
 
         syncedDates.add(date);
-        if (i < datesToFetch.length - 1) await sleep(3000 + Math.random() * 2000);
+        if (i < datesToFetch.length - 1) await sleep(100);
       } catch (e) {
         console.error(`[sync-${type}] error ${date}:`, e.message);
       }
@@ -467,7 +465,7 @@ async function main() {
         }
       } catch (e) {}
       if ((i + 1) % 100 === 0) console.log(`[timeline] ${i + 1}/${state.months[latest].users.length}`);
-      if (i < state.months[latest].users.length - 1) await sleep(500 + Math.random() * 500);
+      if (i < state.months[latest].users.length - 1) await sleep(100);
     }
     console.log(`[timeline] done: ${Object.keys(state.timeline).length} users tracked`);
   }
