@@ -360,7 +360,12 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
 
     const prefix = cacheKey === 'dates' ? 'user-' : 'guild-';
     const cachedDates = cached ? new Set(cached.dates || []) : new Set();
-    const datesToFetch = sortedDates.filter((d) => !cachedDates.has(d));
+    const recent3 = new Set(sortedDates.slice(-3));
+    const datesToFetch = sortedDates.filter((d) => {
+      if (recent3.has(d)) return true;                          // always refresh last 3 days
+      if (!cachedDates.has(d)) return true;                     // new date
+      return !fs.existsSync(path.join(DAILY_DIR, `${prefix}${d}.json`)); // missing daily file
+    });
 
     if (datesToFetch.length === 0) continue;
 
