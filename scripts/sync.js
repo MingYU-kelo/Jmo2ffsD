@@ -6,7 +6,7 @@ const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DAILY_DIR = path.join(DATA_DIR, 'daily');
 const PAGE_SIZE = 10;
-const CONCURRENCY = 3;
+const CONCURRENCY = 5;
 
 // --- Helpers ---
 function sleep(ms) {
@@ -81,7 +81,7 @@ async function fetchAllPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(100);
+    if (page + CONCURRENCY <= totalPages) await sleep(300);
   }
   return allRows;
 }
@@ -102,7 +102,7 @@ async function fetchAllGuildPagesForDate(date) {
     }
     const results = await Promise.all(batch);
     for (const r of results) allRows.push(...r.rows);
-    if (page + CONCURRENCY <= totalPages) await sleep(100);
+    if (page + CONCURRENCY <= totalPages) await sleep(300);
   }
   return allRows;
 }
@@ -410,7 +410,7 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
         }
 
         syncedDates.add(date);
-        if (i < datesToFetch.length - 1) await sleep(100);
+        if (i < datesToFetch.length - 1) await sleep(1500 + Math.random() * 1000);
       } catch (e) {
         console.error(`[sync-${type}] error ${date}:`, e.message);
       }
@@ -465,7 +465,7 @@ async function main() {
         }
       } catch (e) {}
       if ((i + 1) % 100 === 0) console.log(`[timeline] ${i + 1}/${state.months[latest].users.length}`);
-      if (i < state.months[latest].users.length - 1) await sleep(100);
+      if (i < state.months[latest].users.length - 1) await sleep(500 + Math.random() * 500);
     }
     console.log(`[timeline] done: ${Object.keys(state.timeline).length} users tracked`);
   }
