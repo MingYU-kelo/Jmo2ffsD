@@ -4,6 +4,7 @@ const path = require('path');
 
 const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
+const DAILY_DIR = path.join(DATA_DIR, 'daily');
 const PAGE_SIZE = 10;
 const CONCURRENCY = 5;
 
@@ -111,6 +112,19 @@ function loadJson(filePath) {
 
 function saveJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data));
+}
+
+function ensureDailyDir() {
+  if (!fs.existsSync(DAILY_DIR)) fs.mkdirSync(DAILY_DIR, { recursive: true });
+}
+
+function saveDailyIfNew(type, date, rows) {
+  ensureDailyDir();
+  const prefix = type === 'user' ? 'user-' : 'guild-';
+  const file = path.join(DAILY_DIR, `${prefix}${date}.json`);
+  if (!fs.existsSync(file)) {
+    saveJson(file, { date, type, syncedAt: new Date().toISOString(), rows });
+  }
 }
 
 // Load existing per-month data, or migrate from legacy cache.json
@@ -357,6 +371,7 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
       const date = datesToFetch[i];
       try {
         const rows = await getHistoryFn(date);
+        saveDailyIfNew(type, date, rows);
         totalEntries += rows.length;
 
         for (const row of rows) {
