@@ -18,7 +18,7 @@ function fetchJSON(apiPath) {
     const parsed = new URL(targetUrl);
     const options = {
       hostname: parsed.hostname,
-      port: 443,
+      port: parsed.port || 80,
       path: parsed.pathname + parsed.search,
       method: 'GET',
       headers: {
