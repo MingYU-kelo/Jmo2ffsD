@@ -5,6 +5,9 @@ on:
     - cron: '0 20 * * *'  # UTC 20:00 = Beijing 04:00
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -14,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Run sync
         run: node scripts/sync.js
