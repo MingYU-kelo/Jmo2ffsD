@@ -3,3 +3,11 @@ node_modules/
 .claude/
 /cache.json
 /timeline.json
+t.py
+ssh_api_test.py
+*.py
+*.env
+*.pem
+*.key
+credentials*
+secrets*
