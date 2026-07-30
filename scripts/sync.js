@@ -6,7 +6,7 @@ const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DAILY_DIR = path.join(DATA_DIR, 'daily');
 const PAGE_SIZE = 10;
-const CONCURRENCY = 5;
+const CONCURRENCY = 1;
 
 // --- Helpers ---
 function sleep(ms) {
