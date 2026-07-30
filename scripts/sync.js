@@ -360,10 +360,7 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
 
     const prefix = cacheKey === 'dates' ? 'user-' : 'guild-';
     const cachedDates = cached ? new Set(cached.dates || []) : new Set();
-    const datesToFetch = sortedDates.filter((d) => {
-      if (!cachedDates.has(d)) return true;
-      return !fs.existsSync(path.join(DAILY_DIR, `${prefix}${d}.json`));
-    });
+    const datesToFetch = sortedDates.filter((d) => !cachedDates.has(d));
 
     if (datesToFetch.length === 0) continue;
 
