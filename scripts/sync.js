@@ -4,6 +4,7 @@ const path = require('path');
 
 const API_BASE = process.env.PROXY_API || 'https://cshvh.cn';
 const DATA_DIR = path.join(__dirname, '..', 'data');
+const MONTHLY_DIR = path.join(DATA_DIR, 'monthly');
 const DAILY_DIR = path.join(DATA_DIR, 'daily');
 const PAGE_SIZE = 10;
 const CONCURRENCY = 1;
@@ -127,27 +128,41 @@ function saveJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data));
 }
 
-function ensureDailyDir() {
-  if (!fs.existsSync(DAILY_DIR)) fs.mkdirSync(DAILY_DIR, { recursive: true });
+function ensureDailyDir(type, ym) {
+  const dir = path.join(DAILY_DIR, type, ym);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
 }
 
 function saveDailyIfNew(type, date, rows) {
-  ensureDailyDir();
+  const ym = date.substring(0, 7);
+  const dir = ensureDailyDir(type, ym);
   const prefix = type === 'user' ? 'user-' : 'guild-';
-  const file = path.join(DAILY_DIR, `${prefix}${date}.json`);
+  const file = path.join(dir, `${prefix}${date}.json`);
   if (!fs.existsSync(file)) {
     saveJson(file, { date, type, syncedAt: new Date().toISOString(), rows });
   }
+}
+
+function dailyFileExists(type, date) {
+  const ym = date.substring(0, 7);
+  const prefix = type === 'user' ? 'user-' : 'guild-';
+  return fs.existsSync(path.join(DAILY_DIR, type, ym, `${prefix}${date}.json`));
 }
 
 // Load existing per-month data, or migrate from legacy cache.json
 function loadExistingData() {
   ensureDataDir();
 
-  // Check if we already have per-month files
-  const existing = fs.readdirSync(DATA_DIR).filter(f => /^\d{4}-\d{2}\.json$/.test(f));
+  const userDir = path.join(MONTHLY_DIR, 'user');
+  const guildDir = path.join(MONTHLY_DIR, 'guild');
+  const guildMembersDir = path.join(MONTHLY_DIR, 'guild-members');
+
   const overview = loadJson(path.join(DATA_DIR, 'overview.json'));
   const timeline = loadJson(path.join(DATA_DIR, 'timeline.json'));
+
+  // Check if we already have per-month files in new structure
+  const existing = fs.existsSync(userDir) ? fs.readdirSync(userDir).filter(f => /^\d{4}-\d{2}\.json$/.test(f)) : [];
 
   if (existing.length > 0 && overview) {
     console.log(`[load] found ${existing.length} month files, overview, timeline`);
@@ -155,18 +170,20 @@ function loadExistingData() {
     const guildMonths = {};
     for (const f of existing) {
       const ym = f.replace('.json', '');
-      months[ym] = loadJson(path.join(DATA_DIR, f));
+      months[ym] = loadJson(path.join(userDir, f));
     }
-    const guildFiles = fs.readdirSync(DATA_DIR).filter(f => /^guild-\d{4}-\d{2}\.json$/.test(f));
-    for (const f of guildFiles) {
-      const ym = f.replace('guild-', '').replace('.json', '');
-      guildMonths[ym] = loadJson(path.join(DATA_DIR, f));
+    if (fs.existsSync(guildDir)) {
+      for (const f of fs.readdirSync(guildDir).filter(f => /^guild-\d{4}-\d{2}\.json$/.test(f))) {
+        const ym = f.replace('guild-', '').replace('.json', '');
+        guildMonths[ym] = loadJson(path.join(guildDir, f));
+      }
     }
-    const guildMemberFiles = fs.readdirSync(DATA_DIR).filter(f => /^guild-members-\d{4}-\d{2}\.json$/.test(f));
-    for (const f of guildMemberFiles) {
-      const ym = f.replace('guild-members-', '').replace('.json', '');
-      if (!guildMonths[ym]) guildMonths[ym] = {};
-      guildMonths[ym].guildMembers = loadJson(path.join(DATA_DIR, f));
+    if (fs.existsSync(guildMembersDir)) {
+      for (const f of fs.readdirSync(guildMembersDir).filter(f => /^guild-members-\d{4}-\d{2}\.json$/.test(f))) {
+        const ym = f.replace('guild-members-', '').replace('.json', '');
+        if (!guildMonths[ym]) guildMonths[ym] = {};
+        guildMonths[ym].guildMembers = loadJson(path.join(guildMembersDir, f));
+      }
     }
     return { dates: overview.dates || [], guildDates: overview.guildDates || [], months, guildMonths, lastSync: overview.lastSync, timeline: timeline || {} };
   }
@@ -287,12 +304,19 @@ function rebuildGuildMembersForMonth(months, guildMonths, timeline, ym) {
 function saveAllData(dates, guildDates, months, guildMonths, lastSync, timeline) {
   ensureDataDir();
 
+  const userDir = path.join(MONTHLY_DIR, 'user');
+  const guildDir = path.join(MONTHLY_DIR, 'guild');
+  const guildMembersDir = path.join(MONTHLY_DIR, 'guild-members');
+  for (const d of [userDir, guildDir, guildMembersDir]) {
+    if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+  }
+
   // Save per-month user files
-  const monthFiles = new Set();
+  const monthFiles = new Map();
   for (const [ym, data] of Object.entries(months)) {
-    const file = path.join(DATA_DIR, `${ym}.json`);
+    const file = path.join(userDir, `${ym}.json`);
     saveJson(file, data);
-    monthFiles.add(`${ym}.json`);
+    monthFiles.set(`${ym}.json`, userDir);
   }
 
   // Save per-month guild files
@@ -301,23 +325,24 @@ function saveAllData(dates, guildDates, months, guildMonths, lastSync, timeline)
     const guildData = { ...data };
     delete guildData.guildMembers;
     if (Object.keys(guildData).length > 0) {
-      const file = path.join(DATA_DIR, `guild-${ym}.json`);
+      const file = path.join(guildDir, `guild-${ym}.json`);
       saveJson(file, guildData);
-      monthFiles.add(`guild-${ym}.json`);
+      monthFiles.set(`guild-${ym}.json`, guildDir);
     }
     if (guildMembers) {
-      const file = path.join(DATA_DIR, `guild-members-${ym}.json`);
+      const file = path.join(guildMembersDir, `guild-members-${ym}.json`);
       saveJson(file, guildMembers);
-      monthFiles.add(`guild-members-${ym}.json`);
+      monthFiles.set(`guild-members-${ym}.json`, guildMembersDir);
     }
   }
 
   // Clean up old month files that no longer exist
-  for (const f of fs.readdirSync(DATA_DIR)) {
-    if (/^\d{4}-\d{2}\.json$/.test(f) || /^guild-\d{4}-\d{2}\.json$/.test(f) || /^guild-members-\d{4}-\d{2}\.json$/.test(f)) {
+  for (const dir of [userDir, guildDir, guildMembersDir]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
       if (!monthFiles.has(f)) {
-        fs.unlinkSync(path.join(DATA_DIR, f));
-        console.log(`[cleanup] removed ${f}`);
+        fs.unlinkSync(path.join(dir, f));
+        console.log(`[cleanup] removed monthly/${path.basename(dir)}/${f}`);
       }
     }
   }
@@ -358,13 +383,12 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
     const sortedDates = dates.sort();
     const cached = store[ym];
 
-    const prefix = cacheKey === 'dates' ? 'user-' : 'guild-';
     const cachedDates = cached ? new Set(cached.dates || []) : new Set();
     const recent3 = new Set(sortedDates.slice(-3));
     const datesToFetch = sortedDates.filter((d) => {
       if (recent3.has(d)) return true;                          // always refresh last 3 days
       if (!cachedDates.has(d)) return true;                     // new date
-      return !fs.existsSync(path.join(DAILY_DIR, `${prefix}${d}.json`)); // missing daily file
+      return !dailyFileExists(type, d);                         // missing daily file
     });
 
     if (datesToFetch.length === 0) continue;
