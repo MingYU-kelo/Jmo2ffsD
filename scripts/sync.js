@@ -134,14 +134,19 @@ function ensureDailyDir(type, ym) {
   return dir;
 }
 
-function saveDailyIfNew(type, date, rows) {
+function saveDailyFile(type, date, rows) {
   const ym = date.substring(0, 7);
   const dir = ensureDailyDir(type, ym);
   const prefix = type === 'user' ? 'user-' : 'guild-';
   const file = path.join(dir, `${prefix}${date}.json`);
-  if (!fs.existsSync(file)) {
-    saveJson(file, { date, type, syncedAt: new Date().toISOString(), rows });
-  }
+  saveJson(file, { date, type, syncedAt: new Date().toISOString(), rows });
+}
+
+function loadDailyFile(type, date) {
+  const ym = date.substring(0, 7);
+  const prefix = type === 'user' ? 'user-' : 'guild-';
+  const data = loadJson(path.join(DAILY_DIR, type, ym, `${prefix}${date}.json`));
+  return data ? data.rows : [];
 }
 
 function dailyFileExists(type, date) {
@@ -393,67 +398,68 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
 
     if (datesToFetch.length === 0) continue;
 
-    console.log(`[sync-${type}] ${ym}: ${datesToFetch.length} new dates`);
+    console.log(`[sync-${type}] ${ym}: ${datesToFetch.length} dates to fetch`);
 
+    const fetchSet = new Set(datesToFetch);
     const rowMap = new Map();
-    if (cached && cached.users) {
-      for (const u of cached.users) {
-        rowMap.set(String(u[idField]), { ...u });
-      }
-    }
+    let totalEntries = 0;
+    let fetchedCount = 0;
 
-    const syncedDates = cached ? new Set(cached.dates || []) : new Set();
-    let totalEntries = cached ? cached.totalEntries || 0 : 0;
-
-    for (let i = 0; i < datesToFetch.length; i++) {
-      const date = datesToFetch[i];
-      try {
-        const rows = await getHistoryFn(date);
-        saveDailyIfNew(type, date, rows);
-        totalEntries += rows.length;
-
-        for (const row of rows) {
-          const key = String(row[idField]);
-          if (!rowMap.has(key)) {
-            rowMap.set(key, {
-              [idField]: row[idField],
-              [nameField]: row[nameField],
-              avatarUrl: row.avatarUrl || null,
-              logoUrl: row.logoUrl || null,
-              ownerName: row.ownerName || null,
-              ownerId: row.ownerId || null,
-              appearances: 0,
-              totalScore: 0,
-              totalKill: 0,
-              totalDeath: 0,
-            });
-          }
-          const u = rowMap.get(key);
-          u.appearances++;
-          u.totalScore += row[scoreField] || 0;
-          u.totalKill += parseInt(row.kill) || 0;
-          u.totalDeath += parseInt(row.death) || 0;
+    for (const d of sortedDates) {
+      let rows;
+      if (fetchSet.has(d)) {
+        try {
+          rows = await getHistoryFn(d);
+          saveDailyFile(type, d, rows);
+        } catch (e) {
+          console.error(`[sync-${type}] error ${d}:`, e.message);
+          rows = loadDailyFile(type, d);
         }
-
-        syncedDates.add(date);
-        if (i < datesToFetch.length - 1) await sleep(1500 + Math.random() * 1000);
-      } catch (e) {
-        console.error(`[sync-${type}] error ${date}:`, e.message);
+        fetchedCount++;
+      } else {
+        rows = loadDailyFile(type, d);
       }
 
-      if ((i + 1) % 5 === 0) console.log(`[sync-${type}] ${ym}: ${i + 1}/${datesToFetch.length}`);
+      totalEntries += rows.length;
+      for (const row of rows) {
+        const key = String(row[idField]);
+        if (!rowMap.has(key)) {
+          rowMap.set(key, {
+            [idField]: row[idField],
+            [nameField]: row[nameField],
+            avatarUrl: row.avatarUrl || null,
+            logoUrl: row.logoUrl || null,
+            ownerName: row.ownerName || null,
+            ownerId: row.ownerId || null,
+            appearances: 0,
+            totalScore: 0,
+            totalKill: 0,
+            totalDeath: 0,
+          });
+        }
+        const u = rowMap.get(key);
+        u.appearances++;
+        u.totalScore += row[scoreField] || 0;
+        u.totalKill += parseInt(row.kill) || 0;
+        u.totalDeath += parseInt(row.death) || 0;
+      }
+
+      if (fetchedCount < datesToFetch.length) {
+        await sleep(1500 + Math.random() * 1000);
+      }
+      if (fetchedCount % 5 === 0) console.log(`[sync-${type}] ${ym}: ${fetchedCount}/${datesToFetch.length}`);
     }
 
-    const rows = [...rowMap.values()].sort((a, b) => b.totalScore - a.totalScore);
+    const users = [...rowMap.values()].sort((a, b) => b.totalScore - a.totalScore);
     store[ym] = {
-      dates: [...syncedDates].sort(),
+      dates: sortedDates,
       totalEntries,
-      userCount: rows.length,
-      users: rows,
+      userCount: users.length,
+      users,
       syncedAt: new Date().toISOString(),
     };
 
-    console.log(`[sync-${type}] ${ym}: ${rows.length} entries, ${totalEntries} total`);
+    console.log(`[sync-${type}] ${ym}: ${users.length} entries, ${totalEntries} total`);
   }
 }
 
