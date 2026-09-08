@@ -377,6 +377,11 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
   const allDates = await fetchJSON(getDatesPath);
   state[datesKey] = allDates;
 
+  // Only the 3 most recent dates overall are always refreshed. This must be
+  // computed once across all dates: computing it per month would keep
+  // re-fetching the last 3 days of every past month on every run.
+  const recent3 = new Set([...allDates].sort().slice(-3));
+
   const monthMap = new Map();
   for (const d of allDates) {
     const ym = d.substring(0, 7);
@@ -389,9 +394,8 @@ async function syncOneType(type, getDatesPath, getHistoryFn, cacheKey, idField, 
     const cached = store[ym];
 
     const cachedDates = cached ? new Set(cached.dates || []) : new Set();
-    const recent3 = new Set(sortedDates.slice(-3));
     const datesToFetch = sortedDates.filter((d) => {
-      if (recent3.has(d)) return true;                          // always refresh last 3 days
+      if (recent3.has(d)) return true;                          // always refresh the last 3 dates overall
       if (!cachedDates.has(d)) return true;                     // new date
       return !dailyFileExists(type, d);                         // missing daily file
     });
